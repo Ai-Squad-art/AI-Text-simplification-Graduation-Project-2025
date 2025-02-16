@@ -16,7 +16,8 @@ import numpy as np
 # ============================
 # 1) Hyperparameters
 # ============================
-VOCAB_SIZE = 8192
+# Originally set to a high number, but will update after vectorizer.adapt()
+VOCAB_SIZE = 8192  
 MAX_LENGTH = 40
 EMBED_DIM = 256
 LATENT_DIM = 512
@@ -60,6 +61,11 @@ vectorizer = layers.TextVectorization(
 )
 all_texts = refTexts + hSimTexts
 vectorizer.adapt(tf.data.Dataset.from_tensor_slices(all_texts).batch(5))
+
+# Update VOCAB_SIZE to the actual number of tokens in the vocabulary.
+VOCAB = vectorizer.get_vocabulary()
+VOCAB_SIZE = len(VOCAB)
+print("Actual vocabulary size:", VOCAB_SIZE)
 
 def vectorize_text(inputs, outputs):
     # Convert raw texts to integer sequences
@@ -200,7 +206,6 @@ fnet.summary()
 # ============================
 # 9) Inference with Temperature Sampling
 # ============================
-VOCAB = vectorizer.get_vocabulary()
 def decode_sentence(input_sentence, temperature=1.0):
     tokenized_input = vectorizer(tf.constant("[start] " + input_sentence + " [end]"))
     tokenized_input = tf.cast(tokenized_input, tf.int32)
